@@ -1,5 +1,6 @@
 import pygame
 import os
+pygame.font.init()
 
 WIDTH, HEIGHT = 900, 500
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -12,6 +13,10 @@ YELLOW = (255, 255, 0)
 
 
 BORDER = pygame.Rect(WIDTH//2 - 5, 0, 10, HEIGHT)
+
+HEALTH_FONT = pygame.font.SysFont('comicsans', 30)
+WINNER_FONT = pygame.font.SysFont('comicsans', 100)
+
 
 VEL = 7
 BULLETS_VEL = 8
@@ -34,9 +39,18 @@ RED_SPACESHIP = pygame.transform.rotate(pygame.transform.scale(
     RED_SPACESHIP_IMAGE, (SPACESHIP_WIDTH, SPACESHIP_HEIGHT)), 270)
 
 
-def draw_window(red, yellow, red_bullets, yellow_bullets):
+def draw_window(red, yellow, red_bullets, yellow_bullets, yellow_health, red_health):
     WIN.fill(BLACK)
     pygame.draw.rect(WIN, WHITE, BORDER)
+
+    yellow_health_text = HEALTH_FONT.render(
+        "Shields: " + str(yellow_health) + "%", 1, WHITE)
+    red_health_text = HEALTH_FONT.render(
+        "Shields: " + str(red_health) + "%", 1, WHITE)
+
+    WIN.blit(red_health_text, (WIDTH - red_health_text.get_width()-10, 10))
+    WIN.blit(yellow_health_text, (10, 10))
+
     WIN.blit(YELLOW_SPACESHIP, (yellow.x, yellow.y))
     WIN.blit(RED_SPACESHIP, (red.x, red.y))
 
@@ -88,12 +102,21 @@ def handle_bullets(yellow_bullets, red_bullets, yellow, red):
             red_bullets.remove(bullet)
 
 
+def draw_winner(text):
+    pass
+
+
 def main():
     yellow = pygame.Rect(100, 300, SPACESHIP_WIDTH, SPACESHIP_HEIGHT)  # left
     red = pygame.Rect(700, 300, SPACESHIP_WIDTH, SPACESHIP_HEIGHT)  # right
 
+    winner_text = ""
+
     red_bullets = []
     yellow_bullets = []
+
+    yellow_health = 100
+    red_health = 100
 
     clock = pygame.time.Clock()
     run = True
@@ -114,13 +137,26 @@ def main():
                         red.x, red.y + red.height//2 - 2, 10, 5)
                     red_bullets.append(bullet)
 
+            if event.type == YELLOW_HIT:
+                yellow_health -= 10
+            if event.type == RED_HIT:
+                red_health -= 10
+
+        if yellow_health <= 0:
+            winner_text = "RED DESTROYED YELLOW'S SHIP!"
+        if red_health <= 0:
+            winner_text = "YELLOW DESTROYED RED'S SHIP!"
+        if winner_text != "":
+            pass
+
         keys_pressed = pygame.key.get_pressed()
         yellow_handle_movements(keys_pressed, yellow)
         red_handle_movements(keys_pressed, red)
 
         handle_bullets(yellow_bullets, red_bullets, yellow, red)
 
-        draw_window(red, yellow, yellow_bullets, red_bullets)
+        draw_window(red, yellow, yellow_bullets,
+                    red_bullets, yellow_health, red_health)
 
     pygame.quit()
 
